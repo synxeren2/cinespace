@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CINESPACE — Film Keşif Tuvali</title>
+  <meta name="description" content="CINESPACE: film afişlerini geniş bir keşif tuvali üzerinde sürükleyerek gezebileceğiniz, HTML ve CSS ağırlıklı bir film keşif arayüzü.">
+
+  <!-- Yazı tipleri: internet yoksa sistem yazı tipine düşer, tasarım bozulmaz -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2307070a'/><circle cx='16' cy='16' r='6' fill='%23a78bfa'/></svg>">
+</head>
+<body>
+
+  <!-- ==========================================================
+       ÜST BAR: logo, arama, tür filtreleri ve Listem sayacı
+       ========================================================== -->
+  <header class="topbar">
+    <button class="logo" id="logo" type="button" title="Keşfet ekranına dön">
+      <span class="logo-mark" aria-hidden="true"></span>
+      <span class="logo-text">CINESPACE</span>
+    </button>
+
+    <div class="search">
+      <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"></circle>
+        <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
+      </svg>
+      <input id="search" type="search" placeholder="Film ara" autocomplete="off"
+             spellcheck="false" aria-label="Film adına göre ara">
+      <button class="search-clear" id="searchClear" type="button"
+              aria-label="Aramayı temizle" hidden>×</button>
+    </div>
+
+    <nav class="filters" id="filters" aria-label="Film türleri">
+      <button class="filter is-active" type="button" data-tur="Tümü">Tümü</button>
+      <button class="filter" type="button" data-tur="Aksiyon">Aksiyon</button>
+      <button class="filter" type="button" data-tur="Bilim Kurgu">Bilim Kurgu</button>
+      <button class="filter" type="button" data-tur="Dram">Dram</button>
+      <button class="filter" type="button" data-tur="Komedi">Komedi</button>
+      <button class="filter" type="button" data-tur="Korku">Korku</button>
+      <button class="filter" type="button" data-tur="Animasyon">Animasyon</button>
+    </nav>
+
+    <button class="list-chip" id="listChip" type="button" aria-pressed="false"
+            title="Listendeki filmleri göster">
+      <span class="list-chip-icon" aria-hidden="true">＋</span>
+      <span>Listem</span>
+      <span class="list-chip-count" id="listCount">0</span>
+    </button>
+  </header>
+
+  <section class="discovery-bar" id="discoveryBar" aria-label="Keşif araçları">
+    <div class="discovery-main">
+      <button id="randomFilm" class="tool-button accent">✦ Ne izlesem?</button>
+      <select id="collection" aria-label="Hazır seçki">
+        <option value="">Tüm seçkiler</option><option value="scifi">Bilim kurgu gecesi</option>
+        <option value="nineties">90’lar sineması</option><option value="top">Yüksek puanlılar</option>
+      </select>
+      <button id="advancedToggle" class="tool-button" aria-expanded="false" aria-controls="advancedFilters">Filtreler</button>
+      <button id="recentToggle" class="tool-button" aria-expanded="false" aria-controls="recentPanel">Son bakılanlar</button>
+      <div class="view-switch" aria-label="Görünüm"><button id="canvasView" aria-pressed="true">Tuval</button><button id="gridView" aria-pressed="false">Izgara</button></div>
+      <button id="helpToggle" class="tool-button" aria-label="Kullanım ipuçları">?</button>
+    </div>
+    <form id="advancedFilters" class="advanced-filters" hidden>
+      <label>Başlangıç yılı<input id="yearFrom" type="number" min="1888" max="2100" placeholder="Tümü"></label>
+      <label>Bitiş yılı<input id="yearTo" type="number" min="1888" max="2100" placeholder="Tümü"></label>
+      <label>En az puan<select id="minRating"><option value="0">Tümü</option><option value="6">6+</option><option value="7">7+</option><option value="8">8+</option><option value="9">9+</option></select></label>
+      <label class="check-label"><input id="hideWatched" type="checkbox">İzlediklerimi gizle</label>
+      <button class="tool-button accent" type="submit">Uygula</button><button id="clearAdvanced" class="tool-button" type="button">Temizle</button>
+      <span id="filterMessage" role="status"></span>
+    </form>
+  </section>
+  <aside id="recentPanel" class="floating-panel" hidden aria-label="Son bakılan filmler"><div class="panel-heading"><h2>Son bakılanlar</h2><button id="clearRecent" class="tool-button">Geçmişi temizle</button><button id="closeRecent" class="tool-button" aria-label="Paneli kapat">×</button></div><div id="recentFilms"></div></aside>
+  <aside id="onboarding" class="onboarding" hidden aria-label="Kullanım ipuçları"><span class="eyebrow">KEŞFE BAŞLA</span><h2>Bir film evreni, senin rotan.</h2><p>Boş alandan sürükle, tekerlekle yakınlaş. Afişe tıklayıp filmi keşfet; köşesindeki + ile listene ekle.</p><p>Kararsızsan <strong>Ne izlesem?</strong> sana bir film seçsin. Düzenli gezinmek için <strong>Izgara</strong> görünümünü dene.</p><button id="dismissOnboarding" class="tool-button accent">Anladım, keşfedelim</button></aside>
+  <!-- ==========================================================
+       ANA EKRAN: sürüklenebilir film keşif tuvali
+       ========================================================== -->
+  <main class="stage" id="stage" aria-label="Film keşif tuvali">
+    <!-- Tuval: JavaScript ile taşınan ve yakınlaştırılan büyük yüzey -->
+    <div class="world" id="world">
+      <div class="world-label">
+        <span class="world-label-dot" aria-hidden="true"></span>
+        <span id="worldLabelText">SEÇKİ · FİLM · TMDB</span>
+      </div>
+      <div class="world-rule" aria-hidden="true"></div>
+      <!-- Film kartları script.js tarafından buraya eklenir -->
+      <div id="cards"></div>
+    </div>
+
+    <div id="gridCards" class="grid-cards" hidden></div>
+    <!-- Sol alt: durum bilgisi -->
+    <div class="stage-status">
+      <button id="retryCatalog" type="button" hidden>Yeniden dene</button>
+      <span id="statusCount">yükleniyor</span>
+      <span class="dot" aria-hidden="true"></span>
+      <span id="statusFilter">Tüm seçki</span>
+    </div>
+
+    <!-- Orta: sonuç yoksa görünen mesaj -->
+    <div class="empty" id="empty" hidden>
+      <p class="empty-title">Sonuç bulunamadı</p>
+      <p class="empty-text">Aramayı temizleyip başka bir tür deneyin.</p>
+      <button class="btn btn-ghost" id="emptyReset" type="button">Filtreleri sıfırla</button>
+    </div>
+
+    <!-- Sağ: yakınlaştırma kontrolleri -->
+    <div class="zoom" role="group" aria-label="Yakınlaştırma kontrolleri">
+      <button class="zoom-btn" id="zoomIn" type="button" aria-label="Yakınlaştır" title="Yakınlaştır">+</button>
+      <span class="zoom-level" id="zoomLevel">100%</span>
+      <button class="zoom-btn" id="zoomOut" type="button" aria-label="Uzaklaştır" title="Uzaklaştır">−</button>
+      <span class="zoom-sep" aria-hidden="true"></span>
+      <button class="zoom-btn" id="zoomFit" type="button" aria-label="Tüm seçkiyi ekrana sığdır" title="Tüm seçkiyi sığdır">⤢</button>
+    </div>
+
+    <!-- Sağ alt: mini harita -->
+    <aside class="minimap" id="minimap" aria-label="Mini harita: tuvalin genel görünümü">
+      <div class="minimap-inner" id="minimapInner">
+        <div class="minimap-view" id="minimapView"></div>
+      </div>
+    </aside>
+
+    <!-- Alt: kısa kullanım ipucu -->
+    <p class="hint">
+      <span class="hint-mouse" aria-hidden="true"></span>
+      Sürükleyerek keşfet
+      <span class="hint-sep" aria-hidden="true">·</span>
+      <span class="hint-alt">Kaydırarak yakınlaştır</span>
+    </p>
+
+    <!-- Sağ alt köşe: veri kaynağı bilgisi (TMDB kullanım koşulu) -->
+    <p class="tmdb-note">
+      Bu ürün TMDB API'sini kullanır; ancak TMDB tarafından onaylanmamıştır.
+    </p>
+  </main>
+
+  <!-- ==========================================================
+       FİLM DETAY EKRANI
+       ========================================================== -->
+  <section class="overlay detail" id="detail" hidden aria-label="Film detayı">
+    <img class="detail-bg" id="detailBg" src="" alt="" aria-hidden="true">
+    <div class="detail-scrim" aria-hidden="true"></div>
+
+    <div class="detail-inner">
+      <button class="back-btn" id="detailBack" type="button">
+        <span aria-hidden="true">←</span> Keşfet ekranına dön
+      </button>
+
+      <div class="detail-grid">
+        <img class="detail-poster" id="detailPoster" src="" alt="">
+
+        <div class="detail-main">
+          <p class="detail-kicker">CINESPACE SEÇKİ</p>
+          <h2 class="detail-title" id="detailTitle"></h2>
+          <ul class="detail-meta" id="detailMeta"></ul>
+          <p class="detail-desc" id="detailDesc"></p>
+
+          <div class="detail-actions">
+            <button class="btn btn-primary" id="detailWatch" type="button">
+              <span aria-hidden="true">▶</span> İzle
+            </button>
+            <button class="btn btn-ghost" id="detailList" type="button">
+              <span id="detailListIcon" aria-hidden="true">＋</span>
+              <span id="detailListText">Listeme ekle</span>
+            </button>
+          </div>
+
+          <button id="markWatched" class="tool-button watched-button" aria-pressed="false">✓ İzlendi olarak işaretle</button>
+          <div class="detail-extra">
+            <div class="detail-block">
+              <h3>Yönetmen</h3>
+              <p id="detailDirector">Bilgi yok</p>
+            </div>
+            <div class="detail-block">
+              <h3>Oyuncular</h3>
+              <ul class="cast" id="detailCast"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section class="similar-section" aria-label="Benzer filmler"><div class="panel-heading"><h3>Benzer filmler</h3><span id="similarStatus" role="status"></span></div><div id="similarFilms" class="similar-films"></div></section>
+      <p class="esc-hint">Detaydan çıkmak için <kbd>Esc</kbd></p>
+    </div>
+  </section>
+
+  <!-- ==========================================================
+       İZLEME EKRANI (kaynak seçimi + demo oynatıcı)
+       ========================================================== -->
+  <section class="overlay watch" id="watch" hidden aria-label="İzleme ekranı">
+    <div class="watch-inner">
+      <header class="watch-top">
+        <button class="back-btn" id="watchBack" type="button">
+          <span aria-hidden="true">←</span> Filme dön
+        </button>
+        <div class="watch-heading">
+          <strong id="watchTitle"></strong>
+          <span class="demo-chip" id="watchChip">DEMO</span>
+        </div>
+      </header>
+
+      <!-- Kaynak sekmeleri script.js tarafından oluşturulur -->
+      <div class="sources" id="sources" role="tablist" aria-label="Video kaynakları"></div>
+
+      <div class="player">
+        <div class="player-frame" id="playerFrame"></div>
+
+        <div class="player-error" id="playerError" hidden>
+          <h3>Örnek video yüklenemedi</h3>
+          <p>
+            Sayfa <code>assets/video/demo-flower.mp4</code> dosyasını bulamadı veya tarayıcı
+            MP4 biçimini oynatamıyor. Dosyanın <code>index.html</code> ile aynı klasörde
+            olduğundan emin olun.
+          </p>
+        </div>
+      </div>
+
+      <p class="watch-meta" id="watchMeta"></p>
+      <p class="watch-note" id="watchNote"></p>
+    </div>
+  </section>
+
+  <!-- Kısa bildirim mesajı (örneğin "Listeme eklendi") -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Önce ayarlar, sonra uygulama kodu -->
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+  <script src="features.js"></script>
+</body>
+</html>
